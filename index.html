@@ -8,10 +8,7 @@
             border: 1px solid black;
         }
         /* PC表示時のキャンバスのサイズ */
-        #oscillationCanvas {
-            width: 600px;
-            height: 300px;
-        }
+        #oscillationCanvas,
         #displacementGraph {
             width: 600px;
             height: 300px;
@@ -143,9 +140,9 @@
                 displacementGraph.style.height = "300px";
 
                 // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
-                oscillationCanvas.width = oscillationCanvas.clientWidth;
+                oscillationCanvas.width = oscillationCanvas.getBoundingClientRect().width;
                 oscillationCanvas.height = 300;
-                displacementGraph.width = displacementGraph.clientWidth;
+                displacementGraph.width = displacementGraph.getBoundingClientRect().width;
                 displacementGraph.height = 300;
             } else {
                 // PCの場合はデフォルトサイズを適用
