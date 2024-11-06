@@ -18,27 +18,28 @@
         }
         .slider-container, .button-container, .info-container { margin: 10px 0; }
         .slider-container input[type="range"] {
-    -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
-    width: 100%;
-    height: 50px;
-}
+            -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
+            width: 100%;
+            height: 50px;
+        }
 
-/* スライダーのトラック部分のスタイル設定 */
-.slider-container input[type="range"]::-webkit-slider-runnable-track {
-    height: 30px; /* トラックの縦幅を設定 */
-    background: #ddd; /* トラックの背景色 */
-    border-radius: 10px; /* トラックの角を丸める */
-}
+        /* スライダーのトラック部分のスタイル設定 */
+        .slider-container input[type="range"]::-webkit-slider-runnable-track {
+            height: 30px; /* トラックの縦幅を設定 */
+            background: #ddd; /* トラックの背景色 */
+            border-radius: 10px; /* トラックの角を丸める */
+        }
 
-/* スライダーのハンドル部分のスタイル設定 */
-.slider-container input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
-    height: 30px; /* サムの縦幅を設定 */
-    width: 20px; /* サムの横幅を設定 */
-    background: #333; /* サムの色 */
-    border-radius: 20%; /* サムを丸くする */
-    cursor: pointer; /* マウスオーバー時にカーソルを変更 */
-}
+        /* スライダーのハンドル部分のスタイル設定 */
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
+            height: 30px; /* サムの縦幅を設定 */
+            width: 20px; /* サムの横幅を設定 */
+            background: #333; /* サムの色 */
+            border-radius: 20%; /* サムを丸くする */
+            cursor: pointer; /* マウスオーバー時にカーソルを変更 */
+        }
+        
         .indicator {
             font-size: 24px;
             font-weight: bold;
@@ -58,7 +59,7 @@
         /* スマホ向けのスタイル調整 */
         @media (max-width: 768px) {
             #oscillationCanvas, #displacementGraph {
-                width: 100%; /* スマホ表示時にキャンバスを横幅いっぱいに設定 */
+                width: 100% !important; /* スマホ表示時にキャンバスを横幅いっぱいに設定、優先度を高くする */
                 height: auto;
             }
             input[type="range"] {
@@ -135,19 +136,31 @@
 
         // キャンバスのリサイズ設定（スマホの場合のみリサイズを適用）
         function resizeCanvas() {
-            if (window.innerWidth <= 768) { // スマホの画面幅の場合
-                oscillationCanvas.width = oscillationCanvas.clientWidth;
-                oscillationCanvas.height = 300;
-                displacementGraph.width = displacementGraph.clientWidth;
-                displacementGraph.height = 300;
-            } else {
-                // PCの場合はデフォルトサイズを適用
-                oscillationCanvas.width = 600;
-                oscillationCanvas.height = 300;
-                displacementGraph.width = 450;
-                displacementGraph.height = 300;
-            }
-        }
+    if (window.innerWidth <= 768) { // スマホの画面幅の場合
+        oscillationCanvas.style.width = "100%";
+        oscillationCanvas.style.height = "300px";
+        displacementGraph.style.width = "100%";
+        displacementGraph.style.height = "300px";
+
+        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+        oscillationCanvas.width = oscillationCanvas.clientWidth;
+        oscillationCanvas.height = 300;
+        displacementGraph.width = displacementGraph.clientWidth;
+        displacementGraph.height = 300;
+    } else {
+        // PCの場合はデフォルトサイズを適用
+        oscillationCanvas.style.width = "600px";
+        oscillationCanvas.style.height = "300px";
+        displacementGraph.style.width = "600px";
+        displacementGraph.style.height = "300px";
+
+        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+        oscillationCanvas.width = 600;
+        oscillationCanvas.height = 300;
+        displacementGraph.width = 600;
+        displacementGraph.height = 300;
+    }
+}
 
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
