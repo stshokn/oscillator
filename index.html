@@ -139,10 +139,10 @@
             // 変位グラフの更新
             graphCtx.clearRect(0, 0, displacementGraph.width, displacementGraph.height);
             graphCtx.beginPath();
-            graphCtx.moveTo(0, displacementGraph.height / 2);
+            graphCtx.moveTo(30, displacementGraph.height / 2);
             for (let t = 0; t < time; t += 0.1) {
                 const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
-                const graphX = t * 10; // 時間軸のスケール調整
+                const graphX = 30 + t * 10; // 時間軸のスケール調整
                 const graphY = displacementGraph.height / 2 - graphDisplacement;
                 graphCtx.lineTo(graphX, graphY);
             }
@@ -151,10 +151,10 @@
 
             // グラフの軸と目盛り
             graphCtx.beginPath();
-            graphCtx.moveTo(0, displacementGraph.height / 2);
-            graphCtx.lineTo(displacementGraph.width, displacementGraph.height / 2); // 横軸
             graphCtx.moveTo(30, 0);
-            graphCtx.lineTo(30, displacementGraph.height); // 縦軸
+            graphCtx.lineTo(30, displacementGraph.height); // 縦軸を左端に移動
+            graphCtx.moveTo(30, displacementGraph.height / 2);
+            graphCtx.lineTo(displacementGraph.width, displacementGraph.height / 2); // 横軸
             graphCtx.strokeStyle = 'black';
             graphCtx.stroke();
 
@@ -170,10 +170,10 @@
                 graphCtx.stroke();
             }
             for (let i = 0; i <= displacementGraph.width; i += 50) {
-                graphCtx.fillText((i / 10).toFixed(1), i, displacementGraph.height / 2 + 15);
+                graphCtx.fillText((i / 10).toFixed(1), i + 30, displacementGraph.height / 2 + 15);
                 graphCtx.beginPath();
-                graphCtx.moveTo(i, displacementGraph.height / 2 - 5);
-                graphCtx.lineTo(i, displacementGraph.height / 2 + 5);
+                graphCtx.moveTo(i + 30, displacementGraph.height / 2 - 5);
+                graphCtx.lineTo(i + 30, displacementGraph.height / 2 + 5);
                 graphCtx.stroke();
             }
 
