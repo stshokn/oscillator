@@ -6,6 +6,9 @@
     <style>
         canvas { border: 1px solid black; }
         .slider-container, .button-container, .info-container { margin: 10px 0; }
+        .slider-container input[type="range"] {
+            width: 100%; /* スライダーを横幅いっぱいに表示 */
+        }
         .indicator {
             font-size: 24px;
             font-weight: bold;
@@ -20,8 +23,8 @@
         /* スマホ向けのスタイル調整 */
         @media (max-width: 768px) {
             input[type="range"] {
-                width: 100%;
-                height: 40px; /* スライダーの高さを大きくして操作しやすくする */
+                width: 100%; /* スライダーを横幅いっぱいに表示 */
+                height: 50px; /* スライダーの高さを50pxに設定して操作しやすくする */
             }
             label {
                 font-size: 18px; /* ラベルのサイズを大きくして見やすくする */
@@ -71,7 +74,7 @@
 
     <!-- 描画領域 -->
     <canvas id="oscillationCanvas" width="600" height="300"></canvas>
-    <canvas id="displacementGraph" width="450" height="300"></canvas>
+    <canvas id="displacementGraph" width="600" height="300"></canvas>
 
     <script>
         const massSlider = document.getElementById("mass");
