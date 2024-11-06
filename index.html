@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <title>減衰振動シミュレーション</title>
     <style>
-        canvas { border: 1px solid black; }
+        canvas {
+            border: 1px solid black;
+        }
+        /* PC表示時のキャンバスのサイズ */
+        #oscillationCanvas {
+            width: 600px;
+            height: 300px;
+        }
+        #displacementGraph {
+            width: 600px;
+            height: 300px;
+        }
         .slider-container, .button-container, .info-container { margin: 10px 0; }
         .slider-container input[type="range"] {
             width: 100%; /* スライダーを横幅いっぱいに表示 */
+            height: 60px; /* スライダーの縦幅を60pxに設定 */
         }
         .indicator {
             font-size: 24px;
@@ -20,18 +32,26 @@
             margin: 0 auto;
             border-radius: 5px;
         }
+        .button-container button {
+            font-size: 24px; /* ボタンのフォントサイズを大きく */
+            padding: 20px 40px; /* ボタンのパディングを大きくして全体を大きく */
+            border-radius: 10px; /* ボタンの角を丸めて見やすく */
+        }
         /* スマホ向けのスタイル調整 */
         @media (max-width: 768px) {
+            #oscillationCanvas, #displacementGraph {
+                width: 100%; /* スマホ表示時にキャンバスを横幅いっぱいに設定 */
+                height: auto;
+            }
             input[type="range"] {
-                width: 100%; /* スライダーを横幅いっぱいに表示 */
-                height: 80px; /* スライダーの高さを50pxに設定して操作しやすくする */
+                height: 50px; /* スライダーの高さを50pxに設定して操作しやすくする */
             }
             label {
                 font-size: 18px; /* ラベルのサイズを大きくして見やすくする */
             }
             .button-container button {
-                font-size: 18px;
-                padding: 15px;
+                font-size: 28px; /* スマホでもさらに大きめのボタン */
+                padding: 25px 50px;
             }
             .indicator {
                 font-size: 20px;
@@ -73,8 +93,8 @@
     </div>
 
     <!-- 描画領域 -->
-    <canvas id="oscillationCanvas" width="600" height="300"></canvas>
-    <canvas id="displacementGraph" width="600" height="300"></canvas>
+    <canvas id="oscillationCanvas"></canvas>
+    <canvas id="displacementGraph"></canvas>
 
     <script>
         const massSlider = document.getElementById("mass");
@@ -94,6 +114,25 @@
         let running = false;
         let amplitude = 130; // 初期振幅を倍に設定
         let initialPosition = amplitude;
+
+        // キャンバスのリサイズ設定（スマホの場合のみリサイズを適用）
+        function resizeCanvas() {
+            if (window.innerWidth <= 768) { // スマホの画面幅の場合
+                oscillationCanvas.width = oscillationCanvas.clientWidth;
+                oscillationCanvas.height = 300;
+                displacementGraph.width = displacementGraph.clientWidth;
+                displacementGraph.height = 300;
+            } else {
+                // PCの場合はデフォルトサイズを適用
+                oscillationCanvas.width = 600;
+                oscillationCanvas.height = 300;
+                displacementGraph.width = 450;
+                displacementGraph.height = 300;
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
 
         function updateDampingStatus() {
             const mass = parseFloat(massSlider.value);
@@ -136,8 +175,8 @@
 
             // 減衰振動の位置計算 (x = 初期位置 * e^(-dampingCoeff * t) * cos(ω * t))
             const displacement = initialPosition * Math.exp(-dampingCoeff * time) * Math.cos(omega * time);
-            const x = 300 + displacement;
-            const y = 150; // 中心位置を新しいキャンバス高さに対応
+            const x = oscillationCanvas.width / 2 + displacement;
+            const y = oscillationCanvas.height / 2;
 
             // 水平線を描画（おもりが接する水平面）
             ctx.beginPath();
