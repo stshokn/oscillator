@@ -96,7 +96,7 @@
         </label>
     </div>
     <div class="slider-container">
-        <label>減衰係数 (\(\gamma / \sqrt{mk}\)): <span id="dampingFactorValue">0.00</span>
+        <label>減衰係数(\( \gamma )\) ( \( \sqrt{mk} \) の倍数として設定): <span id="dampingFactorValue">0.00</span>
             <input type="range" id="dampingFactor" min="0" max="3" step="0.2" value="0">
         </label>
     </div>
@@ -136,33 +136,38 @@
 
         // キャンバスのリサイズ設定（スマホの場合のみリサイズを適用）
         function resizeCanvas() {
-    if (window.innerWidth <= 768) { // スマホの画面幅の場合
-        oscillationCanvas.style.width = "100%";
-        oscillationCanvas.style.height = "300px";
-        displacementGraph.style.width = "100%";
-        displacementGraph.style.height = "300px";
+            if (window.innerWidth <= 768) { // スマホの画面幅の場合
+                oscillationCanvas.style.width = "100%";
+                oscillationCanvas.style.height = "300px";
+                displacementGraph.style.width = "100%";
+                displacementGraph.style.height = "300px";
 
-        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
-        oscillationCanvas.width = oscillationCanvas.clientWidth;
-        oscillationCanvas.height = 300;
-        displacementGraph.width = displacementGraph.clientWidth;
-        displacementGraph.height = 300;
-    } else {
-        // PCの場合はデフォルトサイズを適用
-        oscillationCanvas.style.width = "600px";
-        oscillationCanvas.style.height = "300px";
-        displacementGraph.style.width = "600px";
-        displacementGraph.style.height = "300px";
+                // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+                oscillationCanvas.width = oscillationCanvas.clientWidth;
+                oscillationCanvas.height = 300;
+                displacementGraph.width = displacementGraph.clientWidth;
+                displacementGraph.height = 300;
+            } else {
+                // PCの場合はデフォルトサイズを適用
+                oscillationCanvas.style.width = "600px";
+                oscillationCanvas.style.height = "300px";
+                displacementGraph.style.width = "600px";
+                displacementGraph.style.height = "300px";
 
-        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
-        oscillationCanvas.width = 600;
-        oscillationCanvas.height = 300;
-        displacementGraph.width = 600;
-        displacementGraph.height = 300;
-    }
-}
+                // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+                oscillationCanvas.width = 600;
+                oscillationCanvas.height = 300;
+                displacementGraph.width = 600;
+                displacementGraph.height = 300;
+            }
+        }
 
-        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            resetSimulation();
+            draw(); // リサイズ直後に描画をリフレッシュ
+        });
+
         window.addEventListener('load', resizeCanvas);
 
         function updateDampingStatus() {
