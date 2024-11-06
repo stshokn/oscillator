@@ -18,6 +18,9 @@
             border-radius: 5px;
         }
     </style>
+    <!-- MathJaxの読み込み -->
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <h2>減衰振動シミュレーション</h2>
@@ -35,7 +38,7 @@
     </div>
     <div class="slider-container">
         <label>減衰係数 (\(\gamma / \sqrt{mk}\)): <span id="dampingFactorValue">0.00</span>
-            <input type="range" id="dampingFactor" min="0" max="3" step="0.02" value="0">
+            <input type="range" id="dampingFactor" min="0" max="2.6" step="0.2" value="0">
         </label>
     </div>
 
@@ -50,8 +53,8 @@
     </div>
 
     <!-- 描画領域 -->
-    <canvas id="oscillationCanvas" width="600" height="200"></canvas>
-    <canvas id="displacementGraph" width="600" height="200"></canvas>
+    <canvas id="oscillationCanvas" width="600" height="300"></canvas>
+    <canvas id="displacementGraph" width="450" height="300"></canvas>
 
     <script>
         const massSlider = document.getElementById("mass");
@@ -69,7 +72,7 @@
 
         let time = 0;
         let running = false;
-        let amplitude = 90; // 振幅
+        let amplitude = 130; // 初期振幅を倍に設定
         let initialPosition = amplitude;
 
         function updateDampingStatus() {
@@ -114,7 +117,7 @@
             // 減衰振動の位置計算 (x = 初期位置 * e^(-dampingCoeff * t) * cos(ω * t))
             const displacement = initialPosition * Math.exp(-dampingCoeff * time) * Math.cos(omega * time);
             const x = 300 + displacement;
-            const y = 100;
+            const y = 150; // 中心位置を新しいキャンバス高さに対応
 
             // 水平線を描画（おもりが接する水平面）
             ctx.beginPath();
@@ -140,9 +143,9 @@
             graphCtx.clearRect(0, 0, displacementGraph.width, displacementGraph.height);
             graphCtx.beginPath();
             graphCtx.moveTo(30, displacementGraph.height / 2);
-            for (let t = 0; t < time; t += 0.1) {
+            for (let t = 0; t < time; t += 0.05) { // 時間の縮尺を大きくする
                 const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
-                const graphX = 30 + t * 10; // 時間軸のスケール調整
+                const graphX = 30 + t * 100; // 時間軸のスケール調整
                 const graphY = displacementGraph.height / 2 - graphDisplacement;
                 graphCtx.lineTo(graphX, graphY);
             }
@@ -161,7 +164,7 @@
             // 目盛り
             graphCtx.font = "10px Arial";
             graphCtx.fillStyle = "black";
-            for (let i = -50; i <= 50; i += 10) {
+            for (let i = -100; i <= 100; i += 20) { // 目盛りの間隔を調整
                 let y = displacementGraph.height / 2 - i;
                 graphCtx.fillText(i, 5, y + 3);
                 graphCtx.beginPath();
@@ -177,7 +180,7 @@
                 graphCtx.stroke();
             }
 
-            time += 0.05;
+            time += 0.025; // 時間の進行を遅くすることで、時間軸の縮尺を大きく
             requestAnimationFrame(draw);
         }
 
