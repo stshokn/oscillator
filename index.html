@@ -8,13 +8,6 @@
             border: 1px solid black;
         }
 
-        /* PC表示時のキャンバスのサイズ */
-        #oscillationCanvas,
-        #displacementGraph {
-            width: 600px;  /* PCでの幅を600pxに固定 */
-            height: 300px;  /* 高さも固定 */
-        }
-
         .slider-container, .button-container, .info-container {
             margin: 10px 0;
         }
@@ -58,29 +51,6 @@
             font-size: 24px; /* ボタンのフォントサイズを大きく */
             padding: 20px 40px; /* ボタンのパディングを大きくして全体を大きく */
             border-radius: 10px; /* ボタンの角を丸めて見やすく */
-        }
-
-        /* スマホ向けのスタイル調整 */
-        @media (max-width: 768px) {
-            #oscillationCanvas,
-            #displacementGraph {
-                width: 100% !important;  /* スマホ表示時にキャンバスを横幅いっぱいに設定 */
-                height: auto;  /* 高さはアスペクト比に応じて調整 */
-            }
-
-            input[type="range"] {
-                height: 50px; /* スライダーの高さを50pxに設定して操作しやすくする */
-            }
-            label {
-                font-size: 18px; /* ラベルのサイズを大きくして見やすくする */
-            }
-            .button-container button {
-                font-size: 28px; /* スマホでもさらに大きめのボタン */
-                padding: 25px 50px;
-            }
-            .indicator {
-                font-size: 20px;
-            }
         }
     </style>
     <!-- MathJaxの読み込み -->
@@ -140,15 +110,16 @@
         let amplitude = 130; // 初期振幅を倍に設定
         let initialPosition = amplitude;
 
+        // ウィンドウのリサイズ時にキャンバスの幅と高さを調整
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
 
         function resizeCanvas() {
             if (window.innerWidth <= 768) {
                 // スマホ用に横幅いっぱいにする
-                oscillationCanvas.width = oscillationCanvas.clientWidth;
-                oscillationCanvas.height = 300; // 固定の高さ
-                displacementGraph.width = displacementGraph.clientWidth;
+                oscillationCanvas.width = window.innerWidth - 20; // ページの余白を差し引く
+                oscillationCanvas.height = 300;
+                displacementGraph.width = window.innerWidth - 20;
                 displacementGraph.height = 300;
             } else {
                 // PC表示時には指定した幅に戻す
