@@ -5,7 +5,11 @@
     <title>減衰振動シミュレーション</title>
     <style>
         canvas { border: 1px solid black; }
-        .slider-container, .button-container, .info-container { margin: 10px 0; }
+        .slider-container, .button-container, .info-container { margin: 15px 0; }
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 30px; /* スライダーの高さを増やして操作しやすく */
+        }
         .indicator {
             font-size: 24px;
             font-weight: bold;
@@ -16,6 +20,32 @@
             width: 200px;
             margin: 0 auto;
             border-radius: 5px;
+        }
+
+        /* レスポンシブデザインのためのスタイル */
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 20px;
+            }
+            .slider-container label {
+                font-size: 18px; /* スマホで見やすくフォントサイズを増加 */
+            }
+            .slider-container input[type="range"] {
+                width: 100%;
+                height: 40px; /* スライダーをさらに大きくして操作しやすく */
+            }
+            .button-container button {
+                font-size: 20px;
+                padding: 10px 20px;
+            }
+            .indicator {
+                font-size: 22px; /* インジケーターのフォントを大きく */
+                width: 90%; /* スマホの画面に合わせるため広く */
+            }
+            canvas {
+                width: 100%;
+                height: auto;
+            }
         }
     </style>
     <!-- MathJaxの読み込み -->
@@ -38,7 +68,7 @@
     </div>
     <div class="slider-container">
         <label>減衰係数 (\(\gamma / \sqrt{mk}\)): <span id="dampingFactorValue">0.00</span>
-            <input type="range" id="dampingFactor" min="0" max="2.6" step="0.2" value="0">
+            <input type="range" id="dampingFactor" min="0" max="3" step="0.2" value="0">
         </label>
     </div>
 
@@ -143,9 +173,9 @@
             graphCtx.clearRect(0, 0, displacementGraph.width, displacementGraph.height);
             graphCtx.beginPath();
             graphCtx.moveTo(30, displacementGraph.height / 2);
-            for (let t = 0; t < time; t += 0.05) { // 時間の縮尺を大きくする
+            for (let t = 0; t < time; t += 0.05) {
                 const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
-                const graphX = 30 + t * 100; // 時間軸のスケール調整
+                const graphX = 30 + t * 80; // 時間軸のスケール調整
                 const graphY = displacementGraph.height / 2 - graphDisplacement;
                 graphCtx.lineTo(graphX, graphY);
             }
@@ -164,7 +194,7 @@
             // 目盛り
             graphCtx.font = "10px Arial";
             graphCtx.fillStyle = "black";
-            for (let i = -100; i <= 100; i += 20) { // 目盛りの間隔を調整
+            for (let i = -100; i <= 100; i += 20) {
                 let y = displacementGraph.height / 2 - i;
                 graphCtx.fillText(i, 5, y + 3);
                 graphCtx.beginPath();
@@ -180,7 +210,7 @@
                 graphCtx.stroke();
             }
 
-            time += 0.025; // 時間の進行を遅くすることで、時間軸の縮尺を大きく
+            time += 0.025;
             requestAnimationFrame(draw);
         }
 
