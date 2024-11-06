@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>減衰振動シミュレーション</title>
+    <style>
+        canvas { border: 1px solid black; }
+        .slider-container, .button-container, .info-container { margin: 10px 0; }
+        .indicator {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background-color: black;
+            padding: 10px;
+            text-align: center;
+            width: 200px;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>減衰振動シミュレーション</h2>
+
+    <!-- パラメータ設定スライダー -->
+    <div class="slider-container">
+        <label>質量 (kg): <span id="massValue">1.0</span>
+            <input type="range" id="mass" min="0.1" max="5" step="0.1" value="1">
+        </label>
+    </div>
+    <div class="slider-container">
+        <label>ばね定数 (N/m): <span id="springConstantValue">10</span>
+            <input type="range" id="springConstant" min="1" max="50" step="1" value="10">
+        </label>
+    </div>
+    <div class="slider-container">
+        <label>減衰係数 (\(\gamma / \sqrt{mk}\)): <span id="dampingFactorValue">0.00</span>
+            <input type="range" id="dampingFactor" min="0" max="3" step="0.02" value="0">
+        </label>
+    </div>
+
+    <!-- 減衰状態インジケーター -->
+    <div class="info-container">
+        <div id="dampingStatus" class="indicator">単振動</div>
+    </div>
+
+    <!-- 開始ボタン -->
+    <div class="button-container">
+        <button onclick="startSimulation()">運動開始</button>
+    </div>
+
+    <!-- 描画領域 -->
+    <canvas id="oscillationCanvas" width="600" height="200"></canvas>
+    <canvas id="displacementGraph" width="600" height="200"></canvas>
+
+    <script>
+        const massSlider = document.getElementById("mass");
+        const springConstantSlider = document.getElementById("springConstant");
+        const dampingFactorSlider = document.getElementById("dampingFactor");
+        const massValue = document.getElementById("massValue");
+        const springConstantValue = document.getElementById("springConstantValue");
+        const dampingFactorValue = document.getElementById("dampingFactorValue");
+        const dampingStatus = document.getElementById("dampingStatus");
+
+        const oscillationCanvas = document.getElementById("oscillationCanvas");
+        const displacementGraph = document.getElementById("displacementGraph");
+        const ctx = oscillationCanvas.getContext("2d");
+        const graphCtx = displacementGraph.getContext("2d");
+
+        let time = 0;
+        let running = false;
+        let amplitude = 65; // 初期振幅を3割増しに設定
+        let initialPosition = amplitude;
+
+        function updateDampingStatus() {
+            const mass = parseFloat(massSlider.value);
+            const springConstant = parseFloat(springConstantSlider.value);
+            const dampingFactor = parseFloat(dampingFactorSlider.value) * Math.sqrt(mass * springConstant);
+
+            const criticalDamping = 2 * Math.sqrt(springConstant * mass);
+
+            let dampingType = '';
+
+            if (dampingFactor === 0) {
+                dampingType = '単振動';
+                dampingStatus.style.backgroundColor = 'blue';
+            } else if (dampingFactor < criticalDamping) {
+                dampingType = '減衰振動';
+                dampingStatus.style.backgroundColor = 'green';
+            } else if (dampingFactor === criticalDamping) {
+                dampingType = '臨界減衰';
+                dampingStatus.style.backgroundColor = 'yellow';
+                dampingStatus.style.color = 'black';
+            } else {
+                dampingType = '過減衰';
+                dampingStatus.style.backgroundColor = 'red';
+            }
+
+            dampingStatus.textContent = dampingType;
+        }
+
+        function draw() {
+            if (!running) return;
+
+            const mass = parseFloat(massSlider.value);
+            const springConstant = parseFloat(springConstantSlider.value);
+            const dampingFactor = parseFloat(dampingFactorSlider.value) * Math.sqrt(mass * springConstant);
+
+            const omega = Math.sqrt(springConstant / mass);
+            const dampingCoeff = dampingFactor / (2 * mass);
+
+            ctx.clearRect(0, 0, oscillationCanvas.width, oscillationCanvas.height);
+
+            // 減衰振動の位置計算 (x = 初期位置 * e^(-dampingCoeff * t) * cos(ω * t))
+            const displacement = initialPosition * Math.exp(-dampingCoeff * time) * Math.cos(omega * time);
+            const x = 300 + displacement;
+            const y = 100;
+
+            // 水平線を描画（おもりが接する水平面）
+            ctx.beginPath();
+            ctx.moveTo(0, y + 20);
+            ctx.lineTo(oscillationCanvas.width, y + 20);
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            // ばねとおもりの描画
+            ctx.beginPath();
+            ctx.moveTo(50, y);
+            for (let i = 1; i <= 10; i++) {
+                ctx.lineTo(50 + i * (x - 50) / 10, y + (i % 2 === 0 ? 10 : -10));
+            }
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 変位グラフの更新
+            graphCtx.clearRect(0, 0, displacementGraph.width, displacementGraph.height);
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, displacementGraph.height / 2);
+            for (let t = 0; t < time; t += 0.1) {
+                const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
+                const graphX = t * 10; // 時間軸のスケール調整
+                const graphY = displacementGraph.height / 2 - graphDisplacement;
+                graphCtx.lineTo(graphX, graphY);
+            }
+            graphCtx.strokeStyle = 'blue';
+            graphCtx.stroke();
+
+            // グラフの軸と目盛り
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, displacementGraph.height / 2);
+            graphCtx.lineTo(displacementGraph.width, displacementGraph.height / 2); // 横軸
+            graphCtx.moveTo(30, 0);
+            graphCtx.lineTo(30, displacementGraph.height); // 縦軸
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // 目盛り
+            graphCtx.font = "10px Arial";
+            graphCtx.fillStyle = "black";
+            for (let i = -50; i <= 50; i += 10) {
+                let y = displacementGraph.height / 2 - i;
+                graphCtx.fillText(i, 5, y + 3);
+                graphCtx.beginPath();
+                graphCtx.moveTo(25, y);
+                graphCtx.lineTo(35, y);
+                graphCtx.stroke();
+            }
+            for (let i = 0; i <= displacementGraph.width; i += 50) {
+                graphCtx.fillText((i / 10).toFixed(1), i, displacementGraph.height / 2 + 15);
+                graphCtx.beginPath();
+                graphCtx.moveTo(i, displacementGraph.height / 2 - 5);
+                graphCtx.lineTo(i, displacementGraph.height / 2 + 5);
+                graphCtx.stroke();
+            }
+
+            time += 0.05;
+            requestAnimationFrame(draw);
+        }
+
+        function startSimulation() {
+            time = 0;
+            running = true;
+            draw();
+        }
+
+        function resetSimulation() {
+            running = false;
+            updateDampingStatus();
+        }
+
+        massSlider.addEventListener("input", () => {
+            resetSimulation();
+            massValue.textContent = massSlider.value;
+        });
+        springConstantSlider.addEventListener("input", () => {
+            resetSimulation();
+            springConstantValue.textContent = springConstantSlider.value;
+        });
+        dampingFactorSlider.addEventListener("input", () => {
+            resetSimulation();
+            dampingFactorValue.textContent = dampingFactorSlider.value;
+        });
+
+        updateDampingStatus();
+    </script>
+</body>
+</html>
