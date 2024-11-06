@@ -7,11 +7,16 @@
         canvas {
             border: 1px solid black;
         }
-
-        .slider-container, .button-container, .info-container {
-            margin: 10px 0;
+        /* PC表示時のキャンバスのサイズ */
+        #oscillationCanvas {
+            width: 600px;
+            height: 300px;
         }
-
+        #displacementGraph {
+            width: 600px;
+            height: 300px;
+        }
+        .slider-container, .button-container, .info-container { margin: 10px 0; }
         .slider-container input[type="range"] {
             -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
             width: 100%;
@@ -34,7 +39,7 @@
             border-radius: 20%; /* サムを丸くする */
             cursor: pointer; /* マウスオーバー時にカーソルを変更 */
         }
-
+        
         .indicator {
             font-size: 24px;
             font-weight: bold;
@@ -46,11 +51,30 @@
             margin: 0 auto;
             border-radius: 5px;
         }
-
         .button-container button {
             font-size: 24px; /* ボタンのフォントサイズを大きく */
             padding: 20px 40px; /* ボタンのパディングを大きくして全体を大きく */
             border-radius: 10px; /* ボタンの角を丸めて見やすく */
+        }
+        /* スマホ向けのスタイル調整 */
+        @media (max-width: 768px) {
+            #oscillationCanvas, #displacementGraph {
+                width: 100% !important; /* スマホ表示時にキャンバスを横幅いっぱいに設定、優先度を高くする */
+                height: auto;
+            }
+            input[type="range"] {
+                height: 50px; /* スライダーの高さを50pxに設定して操作しやすくする */
+            }
+            label {
+                font-size: 18px; /* ラベルのサイズを大きくして見やすくする */
+            }
+            .button-container button {
+                font-size: 28px; /* スマホでもさらに大きめのボタン */
+                padding: 25px 50px;
+            }
+            .indicator {
+                font-size: 20px;
+            }
         }
     </style>
     <!-- MathJaxの読み込み -->
@@ -72,7 +96,7 @@
         </label>
     </div>
     <div class="slider-container">
-        <label>減衰係数(\( \gamma \)) ( \( \sqrt{mk} \) の倍数として設定): <span id="dampingFactorValue">0.00</span>
+        <label>減衰係数(\( \gamma )\) ( \( \sqrt{mk} \) の倍数として設定): <span id="dampingFactorValue">0.00</span>
             <input type="range" id="dampingFactor" min="0" max="3" step="0.2" value="0">
         </label>
     </div>
@@ -110,25 +134,36 @@
         let amplitude = 130; // 初期振幅を倍に設定
         let initialPosition = amplitude;
 
-        // ウィンドウのリサイズ時にキャンバスの幅と高さを調整
+        // キャンバスのリサイズ設定（スマホの場合のみリサイズを適用）
+        function resizeCanvas() {
+    if (window.innerWidth <= 768) { // スマホの画面幅の場合
+        oscillationCanvas.style.width = "100%";
+        oscillationCanvas.style.height = "300px";
+        displacementGraph.style.width = "100%";
+        displacementGraph.style.height = "300px";
+
+        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+        oscillationCanvas.width = oscillationCanvas.clientWidth;
+        oscillationCanvas.height = 300;
+        displacementGraph.width = displacementGraph.clientWidth;
+        displacementGraph.height = 300;
+    } else {
+        // PCの場合はデフォルトサイズを適用
+        oscillationCanvas.style.width = "600px";
+        oscillationCanvas.style.height = "300px";
+        displacementGraph.style.width = "600px";
+        displacementGraph.style.height = "300px";
+
+        // キャンバスの幅と高さを設定して、描画が適切に行われるようにする
+        oscillationCanvas.width = 600;
+        oscillationCanvas.height = 300;
+        displacementGraph.width = 600;
+        displacementGraph.height = 300;
+    }
+}
+
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', resizeCanvas);
-
-        function resizeCanvas() {
-            if (window.innerWidth <= 768) {
-                // スマホ用に横幅いっぱいにする
-                oscillationCanvas.width = window.innerWidth - 20; // ページの余白を差し引く
-                oscillationCanvas.height = 300;
-                displacementGraph.width = window.innerWidth - 20;
-                displacementGraph.height = 300;
-            } else {
-                // PC表示時には指定した幅に戻す
-                oscillationCanvas.width = 600;
-                oscillationCanvas.height = 300;
-                displacementGraph.width = 600;
-                displacementGraph.height = 300;
-            }
-        }
 
         function updateDampingStatus() {
             const mass = parseFloat(massSlider.value);
@@ -194,9 +229,48 @@
             ctx.arc(x, y, 10, 0, Math.PI * 2);
             ctx.fill();
 
-            // グラフ描画のコード（省略）
-            
-            time += 0.025;
+            // 変位グラフの更新
+            graphCtx.clearRect(0, 0, displacementGraph.width, displacementGraph.height);
+            graphCtx.beginPath();
+            graphCtx.moveTo(30, displacementGraph.height / 2);
+            for (let t = 0; t < time; t += 0.05) { // 時間の縮尺を大きくする
+                const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
+                const graphX = 30 + t * 80; // 時間軸のスケール調整
+                const graphY = displacementGraph.height / 2 - graphDisplacement;
+                graphCtx.lineTo(graphX, graphY);
+            }
+            graphCtx.strokeStyle = 'blue';
+            graphCtx.stroke();
+
+            // グラフの軸と目盛り
+            graphCtx.beginPath();
+            graphCtx.moveTo(30, 0);
+            graphCtx.lineTo(30, displacementGraph.height); // 縦軸を左端に移動
+            graphCtx.moveTo(30, displacementGraph.height / 2);
+            graphCtx.lineTo(displacementGraph.width, displacementGraph.height / 2); // 横軸
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // 目盛り
+            graphCtx.font = "10px Arial";
+            graphCtx.fillStyle = "black";
+            for (let i = -100; i <= 100; i += 20) { // 目盛りの間隔を調整
+                let y = displacementGraph.height / 2 - i;
+                graphCtx.fillText(i, 5, y + 3);
+                graphCtx.beginPath();
+                graphCtx.moveTo(25, y);
+                graphCtx.lineTo(35, y);
+                graphCtx.stroke();
+            }
+            for (let i = 0; i <= displacementGraph.width; i += 50) {
+                graphCtx.fillText((i / 10).toFixed(1), i + 30, displacementGraph.height / 2 + 15);
+                graphCtx.beginPath();
+                graphCtx.moveTo(i + 30, displacementGraph.height / 2 - 5);
+                graphCtx.lineTo(i + 30, displacementGraph.height / 2 + 5);
+                graphCtx.stroke();
+            }
+
+            time += 0.025; // 時間の進行を遅くすることで、時間軸の縮尺を大きく
             requestAnimationFrame(draw);
         }
 
