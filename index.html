@@ -18,9 +18,27 @@
         }
         .slider-container, .button-container, .info-container { margin: 10px 0; }
         .slider-container input[type="range"] {
-            width: 100%; /* スライダーを横幅いっぱいに表示 */
-            height: 60px; /* スライダーの縦幅を60pxに設定 */
-        }
+    -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
+    width: 100%;
+    height: 50px;
+}
+
+/* スライダーのトラック部分のスタイル設定 */
+.slider-container input[type="range"]::-webkit-slider-runnable-track {
+    height: 30px; /* トラックの縦幅を設定 */
+    background: #ddd; /* トラックの背景色 */
+    border-radius: 10px; /* トラックの角を丸める */
+}
+
+/* スライダーのハンドル部分のスタイル設定 */
+.slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
+    height: 30px; /* サムの縦幅を設定 */
+    width: 20px; /* サムの横幅を設定 */
+    background: #333; /* サムの色 */
+    border-radius: 20%; /* サムを丸くする */
+    cursor: pointer; /* マウスオーバー時にカーソルを変更 */
+}
         .indicator {
             font-size: 24px;
             font-weight: bold;
