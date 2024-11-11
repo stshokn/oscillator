@@ -6,40 +6,33 @@
     <style>
         canvas {
             border: 1px solid black;
-            width: 600px;  /* 幅を600pxに固定 */
-            height: 300px;  /* 高さを300pxに固定 */
+            width: 600px;
+            height: 300px;
         }
-
         .slider-container, .button-container, .info-container {
             margin: 10px 0;
         }
-
         .slider-container input[type="range"] {
-            -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
+            -webkit-appearance: none;
             width: 100%;
             height: 50px;
         }
-
-        /* スライダーのトラック部分のスタイル設定 */
         .slider-container input[type="range"]::-webkit-slider-runnable-track {
-            height: 30px; /* トラックの縦幅を設定 */
-            background: #ddd; /* トラックの背景色 */
-            border-radius: 10px; /* トラックの角を丸める */
+            height: 30px;
+            background: #ddd;
+            border-radius: 10px;
         }
-
-        /* スライダーのハンドル部分のスタイル設定 */
         .slider-container input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; /* ブラウザのデフォルトスタイルをリセット */
-            height: 30px; /* サムの縦幅を設定 */
-            width: 20px; /* サムの横幅を設定 */
-            background: #333; /* サムの色 */
-            border-radius: 20%; /* サムを丸くする */
-            cursor: pointer; /* マウスオーバー時にカーソルを変更 */
+            -webkit-appearance: none;
+            height: 30px;
+            width: 20px;
+            background: #333;
+            border-radius: 20%;
+            cursor: pointer;
         }
-
         .indicator {
             font-size: 28px;
-            font-weight: bold; /* フォントを太く */
+            font-weight: bold;
             color: white;
             background-color: yellow;
             padding: 15px;
@@ -47,53 +40,42 @@
             width: 250px;
             margin: 10px auto;
         }
-
         .button-container button {
             font-size: 24px;
-            font-weight: bold; /* ボタンのフォントを太く */
+            font-weight: bold;
             padding: 20px 40px;
         }
-
         .slider-container span {
             font-size: 24px;
-            font-weight: bold; /* スライダーの値表示部分を太く */
+            font-weight: bold;
         }
     </style>
-    <!-- MathJaxの読み込み -->
     <script type="text/javascript" id="MathJax-script" async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <h2>減衰振動シミュレーション</h2>
-
-    <!-- 減衰状態インジケーター -->
     <div class="info-container">
         <div id="dampingStatus" class="indicator">単振動</div>
     </div>
-
-    <!-- パラメータ設定スライダー -->
     <div class="slider-container">
-        <label>質量 (kg): <span id="massValue">1.0</span>
+        <label>質量 \( m \) : <span id="massValue">1.0</span>
             <input type="range" id="mass" min="0.1" max="5" step="0.1" value="1">
         </label>
     </div>
     <div class="slider-container">
-        <label>ばね定数 (N/m): <span id="springConstantValue">20</span>
+        <label>ばね定数 \( k \) : <span id="springConstantValue">20</span>
             <input type="range" id="springConstant" min="0.0" max="50" step="0.2" value="20">
         </label>
     </div>
     <div class="slider-container">
-        <label>減衰係数(\( \gamma \)) ( \( \sqrt{mk} \) の倍数として設定): <span id="dampingFactorValue">0.0</span>
+        <label>減衰係数 \( b \) ( \( \sqrt{mk} \) の倍数として設定): <span id="dampingFactorValue">0.0</span>
             <input type="range" id="dampingFactor" min="0" max="3" step="0.2" value="0">
         </label>
     </div>
-
-    <!-- 開始ボタン -->
     <div class="button-container">
         <button onclick="startSimulation()">運動開始</button>
     </div>
-
-    <!-- 描画領域 -->
     <canvas id="oscillationCanvas" width="600" height="300"></canvas>
     <canvas id="displacementGraph" width="600" height="300"></canvas>
 
@@ -146,16 +128,29 @@
         function draw() {
             if (!running) return;
 
+            updateDampingStatus();
+
             const mass = parseFloat(massSlider.value);
             const springConstant = parseFloat(springConstantSlider.value);
             const dampingFactor = parseFloat(dampingFactorSlider.value) * Math.sqrt(mass * springConstant);
 
-            const omega = Math.sqrt(springConstant / mass);
             const dampingCoeff = dampingFactor / (2 * mass);
+            const criticalDamping = 2 * Math.sqrt(springConstant * mass);
+
+            let displacement;
+            if (dampingFactor < criticalDamping) {
+                const omega = Math.sqrt(springConstant / mass - Math.pow(dampingCoeff, 2));
+                displacement = initialPosition * Math.exp(-dampingCoeff * time) * Math.cos(omega * time);
+            } else if (dampingFactor === criticalDamping) {
+                displacement = initialPosition * Math.exp(-dampingCoeff * time);
+            } else {
+                const r1 = -dampingCoeff + Math.sqrt(Math.pow(dampingCoeff, 2) - springConstant / mass);
+                const r2 = -dampingCoeff - Math.sqrt(Math.pow(dampingCoeff, 2) - springConstant / mass);
+                displacement = initialPosition * (Math.exp(r1 * time) + Math.exp(r2 * time)) / 2;
+            }
 
             ctx.clearRect(0, 0, oscillationCanvas.width, oscillationCanvas.height);
 
-            const displacement = initialPosition * Math.exp(-dampingCoeff * time) * Math.cos(omega * time);
             const x = oscillationCanvas.width / 2 + displacement;
             const y = oscillationCanvas.height / 2;
 
@@ -181,7 +176,17 @@
             graphCtx.beginPath();
             graphCtx.moveTo(30, displacementGraph.height / 2);
             for (let t = 0; t < time; t += 0.05) {
-                const graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
+                let graphDisplacement;
+                if (dampingFactor < criticalDamping) {
+                    const omega = Math.sqrt(springConstant / mass - Math.pow(dampingCoeff, 2));
+                    graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t) * Math.cos(omega * t);
+                } else if (dampingFactor === criticalDamping) {
+                    graphDisplacement = initialPosition * Math.exp(-dampingCoeff * t);
+                } else {
+                    const r1 = -dampingCoeff + Math.sqrt(Math.pow(dampingCoeff, 2) - springConstant / mass);
+                    const r2 = -dampingCoeff - Math.sqrt(Math.pow(dampingCoeff, 2) - springConstant / mass);
+                    graphDisplacement = initialPosition * (Math.exp(r1 * t) + Math.exp(r2 * t)) / 2;
+                }
                 const graphX = 30 + t * 80;
                 if (graphX > displacementGraph.width) break;
                 const graphY = displacementGraph.height / 2 - graphDisplacement;
